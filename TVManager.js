@@ -8,18 +8,20 @@ var baseDir = "k:\\Recorded TV\\";
 let directories = [];
 let files = [];
 
-ExecuteFile("WTV-MetaRenamer.bat");
+ExecuteFile(baseDir + "WTV-MetaRenamer-MASTER.bat");
+CleanupFiles(baseDir, true);
 cleanupEmptyDirectories(baseDir);
 
 
 
-
 function ExecuteFile(fileName){
-	child_process.exec("cmd /c start " + '"'+'"'+" cmd /c " + fileName, function(err, stdout, stderr) {
+	var command = "cmd /c start cmd /c " + '"' + fileName + '"';
+	child_process.execSync(command, function(command, err, stdout, stderr) {
 		if(err){
 			throw err;
 		}
 		console.log(stderr);
+		console.log(stdout);
 	});
 }
 
@@ -29,7 +31,7 @@ function cleanupEmptyDirectories (baseDir){
 			throw err;
 		}
 		directories.forEach(function(dir){
-			fileWalker(dir, function(err, files){
+			fileWalker(dir, true, function(err, files){
 				if (err){
 					throw err;
 				}
@@ -43,8 +45,8 @@ function cleanupEmptyDirectories (baseDir){
 			directoryWalker(dir, function(err, dirs) {
 				if (dirs.length==0 && tvFiles==0){
 					console.log('"' + dir + '"' + " will be deleted");
-					//CleanupFiles(dir);
-					trash([dir,null]).then(() => {
+					trash([dir,null])
+					.then(() => {
 						console.log(dir + " deleted");
 					})
 					.catch((error)=> {
@@ -88,7 +90,7 @@ function directoryWalker (sourceDir, done) {
 	});
 }
 
-function fileWalker (sourceDir, done) {
+function fileWalker (sourceDir, goDeep, done) {
 	let results = [];
 	fs.readdir(sourceDir, function(err, list) {
 		if (err) return done(err);
@@ -101,8 +103,8 @@ function fileWalker (sourceDir, done) {
 			file = path.resolve(sourceDir, file);
 
 			fs.stat(file, function(err, stat) {
-				if (stat && stat.isDirectory()) {
-					fileWalker(file, function(err, res) {
+				if (stat && stat.isDirectory() && goDeep == true) {
+					fileWalker(file, true, function(err, res) {
 						results = results.concat(res);
 						if(!--pending) done(null, results);
 					});
@@ -117,8 +119,8 @@ function fileWalker (sourceDir, done) {
 	});
 }
 
-function CleanupFiles(dir){
-	fileWalker(dir, function(err, files){
+function CleanupFiles(dir, goDeep){
+	fileWalker(dir, goDeep, function(err, files){
 		if (err){
 			throw err;
 		}
@@ -127,7 +129,8 @@ function CleanupFiles(dir){
 			var cleanUp = cleanupExtensions.includes(fileExtension);
 				if (cleanUp){
 					console.log(file + " will be deleted");
-					trash([file,null]).then(() => {
+					trash([file,null])
+					.then(() => {
 						console.log(file + " deleted");
 					})
 					.catch((error)=> {
