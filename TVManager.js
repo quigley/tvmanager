@@ -8,9 +8,13 @@ var baseDir = "k:\\Recorded TV\\";
 let directories = [];
 let files = [];
 
+Console.log("Beginning WTV-MetaRenamer");
 ExecuteFile(baseDir + "WTV-MetaRenamer-MASTER.bat");
+Console.log("Beginning CleaupFiles");
 CleanupFiles(baseDir, true);
+Console.log("Beginning CleanupEmptyDirectories");
 cleanupEmptyDirectories(baseDir);
+Console.log("Execution Complete");
 
 
 
